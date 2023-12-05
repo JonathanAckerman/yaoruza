@@ -13,6 +13,14 @@ Input_Controller: struct {
 
     mouse_x: float;
     mouse_y: float;
+
+    spell_1: bool;
+    spell_2: bool;
+    spell_3: bool;
+    spell_4: bool;
+
+    mouse_button_left:  u32;
+    mouse_button_right: u32;
 }
 
 main :: () {
@@ -67,42 +75,38 @@ handle_input :: () {
             if key == .ESCAPE then game.quit = true;
             if key == .F5     then game.resetting = true;
 
-            if !game.player_in_combat {
+            if !player_in_battle() {
                 if key == .ARROW_LEFT  || key == #char "A" then key_left = event.key_pressed;
                 if key == .ARROW_RIGHT || key == #char "D" then key_right = event.key_pressed;
                 if key == .ARROW_UP    || key == #char "W" then key_up = event.key_pressed;
                 if key == .ARROW_DOWN  || key == #char "S" then key_down = event.key_pressed;
             } else {
-                if game.battle.is_player_turn {
+                if is_player_turn() {
                     if key == {
                         case #char "Q";
-                            if event.key_pressed && Input.input_button_states[key] & .START && !event.repeat {
-                                print("%\n", game.player.hero.spells[0]);
-                            }
+                            spell_1 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "W";
-                            if event.key_pressed && Input.input_button_states[key] & .START && !event.repeat {
-                                print("%\n", game.player.hero.spells[1]);
-                            }
+                            spell_2 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "E";
-                            if event.key_pressed && Input.input_button_states[key] & .START && !event.repeat {
-                                print("%\n", game.player.hero.spells[2]);
-                            }
+                            spell_3 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "R";
-                            if event.key_pressed && Input.input_button_states[key] & .START && !event.repeat {
-                                print("%\n", game.player.hero.spells[3]);
-                            }
+                            spell_4 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "A";
+                        case .MOUSE_BUTTON_LEFT;
+                            mouse_button_left = event.key_pressed;
+                        case .MOUSE_BUTTON_RIGHT;
+                            mouse_button_right = event.key_pressed;
                     }
                 }
             }
 
             // @Debug
-            if game.player_in_combat {
-                if key == #char "2" then game.player_in_combat = false;
+            if player_in_battle() {
+                if key == #char "2" then game.battle.opponent.entity = null;
             } else if key == #char "1"{
-                game.player_in_combat = true;
-                game.battle.is_player_turn = true;
-                game.battle_start_time = get_time();
+                game.battle.opponent.entity = *game.entities[0];
+                game.battle.ply = 0;
+                game.battle.start_time = get_time();
             }
         }
     }
@@ -135,6 +139,7 @@ working_directory_set := false;
 
 #load "game.jai";
 #load "graphics.jai";
+#load "entity.jai";
 
 Compiler :: #import "Compiler";
 Simp  :: #import "Simp";

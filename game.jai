@@ -5,9 +5,6 @@ game: struct {
     last_time: float64;
     dt: float;
 
-    player_in_combat := false;
-    battle_start_time: float64;
-
     player: struct {
         using #as entity: Entity;
         overworld_speed: float : 5.0;
@@ -31,11 +28,14 @@ game: struct {
     entities: [..] Entity;
 
     battle: struct {
+        start_time: float64;
+
         opponent: struct {
             using entity: *Entity;
         }
-        is_player_turn: bool;
-        ply: enum {
+        
+        ply: Ply;
+        Ply :: enum {
             PLAYER_PLY_1;
             PLAYER_PLY_2;
             OPPONENT_PLY_1;
@@ -43,139 +43,20 @@ game: struct {
             PLAYER_PLY_3;
             OPPONENT_PLY_3;
         }
+
+        highlighted_spell := -1;
+        ai_message_start_time: float64;
+        ai_ply_duration: float : 2.0;
     }
 }
 
-Entity :: struct {
-    type: enum {
-        HERO;
-        CREEP;
-    }
-    union {
-        hero: Hero;
-        creep: Creep;
-    }
-    stats: Stat_Block;
-    using position: Vector3;
-    battle_position: Vector3;
-    representation_color: Vector4;
-    representation_size: Vector2;
+player_in_battle :: () -> bool {
+    return game.battle.opponent.entity != null;
 }
 
-Hero :: struct {
-    id: Hero_ID;
-    spells: [4] Spell;
+is_player_turn :: () -> bool {
+    return game.battle.ply == .PLAYER_PLY_1 || game.battle.ply == .PLAYER_PLY_2 || game.battle.ply == .PLAYER_PLY_3;
 }
-
-Creep :: struct {
-    id: Creep_ID;
-}
-
-Stat_Block :: struct {
-    base_health: float;
-    base_mana: float;
-    base_attack: Attack;
-    base_move_speed: float;
-    strength: float;
-    agility: float;
-    intelligence: float;
-}
-
-Spell :: struct {
-    target: enum {
-        POINT;
-        UNIT;
-        AREA;
-    }
-    name: string;
-}
-
-Attack :: struct {
-    type: enum {
-        MELEE;
-        RANGED;
-    }
-    damage: float;
-    base_attack_speed: float;
-    base_attack_time: float;
-}
-
-Hero_ID :: enum {
-    EARTHSHAKER;
-    JUGGERNAUT;
-}
-Creep_ID :: enum {
-    SKELETON;
-    SKELETON_ARCHER;
-}
-
-// Hero Templates
-HERO_TEMPLATE_EARTHSHAKER :: Entity.{
-    type = .HERO,
-    hero = .{
-        .EARTHSHAKER,
-        .[.{.POINT, "Fissure"}, .{.POINT, "Enchat Totem"}, .{.POINT, "Aftershock"}, .{.POINT, "Echo Slam"}],
-    },
-    stats = .{
-        base_health = 500,
-        base_mana = 200,
-        base_attack = .{.MELEE, 50.0, 100.0, 1.7},
-        base_move_speed = 5.0,
-        strength = 12,
-        agility = 10,
-        intelligence = 10,
-    },
-    representation_color = .{1, 0, 0, 1},
-    representation_size = .{50, 50},
-};
-HERO_TEMPLATE_JUGGERNAUT :: Entity.{
-    type = .HERO,
-    hero = .{
-        .JUGGERNAUT,
-        .[.{.POINT, "Battlefury"}, .{.POINT, "Healing Ward"}, .{.POINT, "Blade Dance"}, .{.POINT, "Omnislash"}],
-    },
-    stats = .{
-        base_health = 500,
-        base_mana = 200,
-        base_attack = .{.MELEE, 60.0, 100.0, 1.5},
-        base_move_speed = 6.0,
-        strength = 10,
-        agility = 12,
-        intelligence = 10,
-    },
-    representation_color = .{0, 1, 0, 1},
-    representation_size = .{50, 50},
-};
-CREEP_TEMPLATE_SKELETON :: Entity.{
-    type = .CREEP,
-    creep = .{.SKELETON},
-    stats = .{
-        base_health = 200,
-        base_mana = 0,
-        base_attack = .{.MELEE, 16.0, 100.0, 1.85},
-        base_move_speed = 5.0,
-        strength = 0,
-        agility = 0,
-        intelligence = 0,
-    },
-    representation_color = .{0.8, 0.8, 0.8, 1},
-    representation_size = .{20, 20},
-};
-CREEP_TEMPLATE_SKELETON_ARCHER :: Entity.{
-    type = .CREEP,
-    creep = .{.SKELETON_ARCHER},
-    stats = .{
-        base_health = 200,
-        base_mana = 0,
-        base_attack = .{.RANGED, 16.0, 100.0, 1.85},
-        base_move_speed = 5.0,
-        strength = 0,
-        agility = 0,
-        intelligence = 0,
-    },
-    representation_color = .{1, 1, 1, 1},
-    representation_size = .{20, 20},
-};
 
 game_loop :: () {
     using game;
@@ -225,8 +106,56 @@ simulate :: () {
     // Simulate camera -------------------------------------------
     camera.position = player.position;
 
-    // Battle logic ----------------------------------------------
-    
+    // Battle logic ----------------------------------------------    
+    if is_player_turn() {
+        if spell_1 {
+            battle.highlighted_spell = 0;
+            spell_1 = false;
+        }
+        if spell_2 {
+            battle.highlighted_spell = 1;
+            spell_2 = false;
+        }
+        if spell_3 {
+            battle.highlighted_spell = 2;
+            spell_3 = false;
+        }
+        if spell_4 {
+            battle.highlighted_spell = 3;
+            spell_4 = false;
+        }
+    } else {
+        if get_time() - battle.ai_message_start_time > battle.ai_ply_duration {
+            chosen_spell := cast(int) random_get_within_range(0, battle.opponent.hero.spells.count);
+            print("AI casts %\n", battle.opponent.hero.spells[chosen_spell]);
+            advance_battle();
+        }
+    }
+
+    player_used_ply := false;
+    if battle.highlighted_spell >= 0 {
+        if mouse_button_right {
+            battle.highlighted_spell = -1;
+            mouse_button_right = 0;
+        } else if mouse_button_left {
+            print("Player casts %\n", player.hero.spells[battle.highlighted_spell]);
+            player_used_ply = true;
+            battle.highlighted_spell = -1;
+            mouse_button_left = 0;
+        }
+    }
+
+    if player_used_ply {
+        advance_battle();
+    }
+}
+
+advance_battle :: () {
+    game.battle.ply = cast(game.battle.Ply) ((cast(int) game.battle.ply + 1) % (enum_highest_value(game.battle.Ply) + 1));
+    print("Advancing to %\n", game.battle.ply);
+    if !is_player_turn() {
+        game.battle.ai_message_start_time = get_time();
+    }
 }
 
 can_cast_spell :: (spell: Spell) -> bool {

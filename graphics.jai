@@ -10,16 +10,16 @@ render :: () {
     // Simp.prepare_text(fonts.OpenSans, "test");
     // Simp.draw_prepared_text(fonts.OpenSans, xx cursor.x, xx cursor.y, Vector4.{1, 1, 1, 1});
 
-    time_since_start := current_time - battle_start_time;
-    should_play_battle_intro := player_in_combat && time_since_start < intro_duration;
-    should_draw_overworld := !player_in_combat || (player_in_combat && time_since_start < intro_duration/2.0);
+    time_since_start := current_time - battle.start_time;
+    should_play_battle_intro := player_in_battle() && time_since_start < intro_duration;
+    should_draw_overworld := !player_in_battle() || (player_in_battle() && time_since_start < intro_duration/2.0);
     if should_draw_overworld {
         draw_grid();
         draw_overworld_entity(player);
         for e: entities {
             draw_overworld_entity(e);
         }
-    } else if player_in_combat {
+    } else if player_in_battle() {
         draw_battle();
     }
     if should_play_battle_intro {
@@ -82,12 +82,24 @@ draw_battle :: () {
     
     cursor := Vector2.{300, 50};
     for spell: player.hero.spells {
-        color := ifx can_cast_spell(spell) then Vector4.{1,1,1,1} else Vector4.{};
+        color := Vector4.{0.6, 0.6, 0.6, 1};
+        if game.battle.highlighted_spell == it_index then color = Vector4.{1,1,1,1};
+        else if !can_cast_spell(spell) color = Vector4.{};
         draw_rectangle(cursor, .{75, 75}, color);
-        Simp.set_shader_for_text();
-        Simp.draw_text(fonts.OpenSans, xx cursor.x, xx cursor.y, "Q", Vector4.{0,0,0,1});
+        //Simp.set_shader_for_text();
+        //Simp.draw_text(fonts.OpenSans, xx cursor.x, xx cursor.y, "Q", Vector4.{0,0,0,1});
         Simp.set_shader_for_color();
         cursor.x += 100;
+    }
+
+    if game.battle.highlighted_spell >= 0 {
+        draw_rectangle(.{Input_Controller.mouse_x, Input_Controller.mouse_y} - .{5,5}, .{10,10}, Vector4.{1,0,0,1});
+    }
+
+    if !is_player_turn() {
+        Simp.set_shader_for_text();
+        Simp.draw_text(fonts.OpenSans, xx window.width/2, xx window.height/2, "ENEMY TURN", Vector4.{1,1,1,1});
+        Simp.set_shader_for_color();
     }
 }
 
