@@ -35,6 +35,7 @@ Stat_Block :: struct {
 
 Spell :: struct {
     target: enum {
+        PASSIVE;
         POINT;
         UNIT;
         AREA;
@@ -66,7 +67,7 @@ HERO_TEMPLATE_EARTHSHAKER :: Entity.{
     type = .HERO,
     hero = .{
         .EARTHSHAKER,
-        .[.{.POINT, "Fissure"}, .{.POINT, "Enchant Totem"}, .{.POINT, "Aftershock"}, .{.POINT, "Echo Slam"}],
+        .[.{.POINT, "Fissure"}, .{.POINT, "Enchant Totem"}, .{.PASSIVE, "Aftershock"}, .{.POINT, "Echo Slam"}],
     },
     stats = .{
         base_health = 500,
@@ -84,7 +85,7 @@ HERO_TEMPLATE_JUGGERNAUT :: Entity.{
     type = .HERO,
     hero = .{
         .JUGGERNAUT,
-        .[.{.POINT, "Battlefury"}, .{.POINT, "Healing Ward"}, .{.POINT, "Blade Dance"}, .{.POINT, "Omnislash"}],
+        .[.{.POINT, "Battlefury"}, .{.POINT, "Healing Ward"}, .{.PASSIVE, "Blade Dance"}, .{.POINT, "Omnislash"}],
     },
     stats = .{
         base_health = 500,

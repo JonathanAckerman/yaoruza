@@ -108,26 +108,32 @@ simulate :: () {
 
     // Battle logic ----------------------------------------------    
     if is_player_turn() {
-        if spell_1 {
+        if spell_1 && player.hero.spells[0].target != .PASSIVE {
             battle.highlighted_spell = 0;
             spell_1 = false;
         }
-        if spell_2 {
+        if spell_2 && player.hero.spells[0].target != .PASSIVE {
             battle.highlighted_spell = 1;
             spell_2 = false;
         }
-        if spell_3 {
+        if spell_3 && player.hero.spells[0].target != .PASSIVE {
             battle.highlighted_spell = 2;
             spell_3 = false;
         }
-        if spell_4 {
+        if spell_4 && player.hero.spells[0].target != .PASSIVE {
             battle.highlighted_spell = 3;
             spell_4 = false;
         }
     } else {
         if get_time() - battle.ai_message_start_time > battle.ai_ply_duration {
-            chosen_spell := cast(int) random_get_within_range(0, battle.opponent.hero.spells.count);
-            print("AI casts %\n", battle.opponent.hero.spells[chosen_spell]);
+            chosen_spell := -1;
+            while chosen_spell < 0 {
+                chosen_spell = cast(int) random_get_within_range(0, battle.opponent.hero.spells.count - 1);
+                if battle.opponent.hero.spells[chosen_spell].target == .PASSIVE {
+                    chosen_spell = -1;
+                }
+            }
+            print("% casts %\n", battle.opponent.hero.id, battle.opponent.hero.spells[chosen_spell]);
             advance_battle();
         }
     }
@@ -138,7 +144,7 @@ simulate :: () {
             battle.highlighted_spell = -1;
             mouse_button_right = 0;
         } else if mouse_button_left {
-            print("Player casts %\n", player.hero.spells[battle.highlighted_spell]);
+            print("% casts %\n", player.hero.id, player.hero.spells[battle.highlighted_spell]);
             player_used_ply = true;
             battle.highlighted_spell = -1;
             mouse_button_left = 0;
