@@ -81,12 +81,16 @@ game_reset :: () {
         e := HERO_TEMPLATE_EARTHSHAKER;
         e.position = .{500, 500, 0};
         e.battle_position = .{500, 300, 0};
+        e.hp = e.stats.base_health + e.stats.strength * 10;
+        e.mana = e.stats.base_mana + e.stats.intelligence * 10;
         game.player.entity = e;
     }
     {
         e := HERO_TEMPLATE_JUGGERNAUT;
         e.position = .{600, 600, 0};
         e.battle_position = .{600, 600, 0};
+        e.hp = e.stats.base_health + e.stats.strength * 10;
+        e.mana = e.stats.base_mana + e.stats.intelligence * 10;
         array_add(*game.entities, e);
     }
 }
@@ -108,21 +112,12 @@ simulate :: () {
 
     // Battle logic ----------------------------------------------    
     if is_player_turn() {
-        if spell_1 && player.hero.spells[0].target != .PASSIVE {
-            battle.highlighted_spell = 0;
-            spell_1 = false;
-        }
-        if spell_2 && player.hero.spells[0].target != .PASSIVE {
-            battle.highlighted_spell = 1;
-            spell_2 = false;
-        }
-        if spell_3 && player.hero.spells[0].target != .PASSIVE {
-            battle.highlighted_spell = 2;
-            spell_3 = false;
-        }
-        if spell_4 && player.hero.spells[0].target != .PASSIVE {
-            battle.highlighted_spell = 3;
-            spell_4 = false;
+        for i: 0..spells.count-1 {
+            if Input_Controller.spells[i] && can_cast_spell(i) {
+                battle.highlighted_spell = i;
+                spells[i] = false;
+                player.hero.spells[i].cooldown_remaining = player.hero.spells[i].cooldown;
+            }
         }
     } else {
         if get_time() - battle.ai_message_start_time > battle.ai_ply_duration {
@@ -157,13 +152,28 @@ simulate :: () {
 }
 
 advance_battle :: () {
-    game.battle.ply = cast(game.battle.Ply) ((cast(int) game.battle.ply + 1) % (enum_highest_value(game.battle.Ply) + 1));
-    print("Advancing to %\n", game.battle.ply);
+    using game;
+    battle.ply = cast(battle.Ply) ((cast(int) battle.ply + 1) % (enum_highest_value(battle.Ply) + 1));
+    
+    // @Optimize-Later: while a bit awkward, perf-wise it's fine
+    for * spell: player.hero.spells if spell.cooldown_remaining > 0 {
+        spell.cooldown_remaining -= 1;
+    }
+
+    for * spell: battle.opponent.entity.hero.spells if spell.cooldown_remaining > 0 {
+        spell.cooldown_remaining -= 1;
+    }
+
+    print("Advancing to %\n", battle.ply);
     if !is_player_turn() {
-        game.battle.ai_message_start_time = get_time();
+        battle.ai_message_start_time = get_time();
     }
 }
 
-can_cast_spell :: (spell: Spell) -> bool {
+can_cast_spell :: (spell_index: int) -> bool {
+    using game;
+    spell := player.hero.spells[spell_index];
+    if spell.target == .PASSIVE return false;
+    if spell.cooldown_remaining > 0 return false;
     return true;
 }

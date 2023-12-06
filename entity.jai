@@ -12,6 +12,8 @@ Entity :: struct {
     battle_position: Vector3;
     representation_color: Vector4;
     representation_size: Vector2;
+    hp: float;
+    mana: float;
 }
 
 Hero :: struct {
@@ -41,6 +43,8 @@ Spell :: struct {
         AREA;
     }
     name: string;
+    cooldown: int;
+    cooldown_remaining: int = 0;
 }
 
 Attack :: struct {
@@ -67,7 +71,7 @@ HERO_TEMPLATE_EARTHSHAKER :: Entity.{
     type = .HERO,
     hero = .{
         .EARTHSHAKER,
-        .[.{.POINT, "Fissure"}, .{.POINT, "Enchant Totem"}, .{.PASSIVE, "Aftershock"}, .{.POINT, "Echo Slam"}],
+        .[.{.POINT, "Fissure", 3, 0}, .{.POINT, "Enchant Totem", 2, 0}, .{.PASSIVE, "Aftershock", 0, 0}, .{.POINT, "Echo Slam", 12, 0}],
     },
     stats = .{
         base_health = 500,
@@ -85,7 +89,7 @@ HERO_TEMPLATE_JUGGERNAUT :: Entity.{
     type = .HERO,
     hero = .{
         .JUGGERNAUT,
-        .[.{.POINT, "Battlefury"}, .{.POINT, "Healing Ward"}, .{.PASSIVE, "Blade Dance"}, .{.POINT, "Omnislash"}],
+        .[.{.POINT, "Battlefury", 3, 0}, .{.POINT, "Healing Ward", 6, 0}, .{.PASSIVE, "Blade Dance", 0, 0}, .{.POINT, "Omnislash", 12, 0}],
     },
     stats = .{
         base_health = 500,

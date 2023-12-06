@@ -82,17 +82,22 @@ draw_battle :: () {
     
     cursor := Vector2.{300, 50};
     for spell: player.hero.spells {
-        color := Vector4.{0.6, 0.6, 0.6, 1};
-        if game.battle.highlighted_spell == it_index then color = Vector4.{1,1,1,1};
-        else if !can_cast_spell(spell) color = Vector4.{};
+        color := Vector4.{0.8, 0.8, 0.8, 1};
+        if !can_cast_spell(it_index) color = Vector4.{0.6, 0.6, 0.6, 1};
+        if battle.highlighted_spell == it_index then color = Vector4.{1,1,1,1};
         draw_rectangle(cursor, .{75, 75}, color);
-        //Simp.set_shader_for_text();
-        //Simp.draw_text(fonts.OpenSans, xx cursor.x, xx cursor.y, "Q", Vector4.{0,0,0,1});
+        if spell.cooldown_remaining {
+            Simp.set_shader_for_text();
+            cd := sprint("%", spell.cooldown_remaining);
+            offset := ifx spell.cooldown_remaining <= 9 then Vector2.{25, 20} else Vector2.{12, 20};
+            position := cursor + offset;
+            Simp.draw_text(fonts.OpenSans, xx position.x, xx position.y, cd, Vector4.{1,1,1,1});
+        }
         Simp.set_shader_for_color();
         cursor.x += 100;
     }
 
-    if game.battle.highlighted_spell >= 0 {
+    if battle.highlighted_spell >= 0 {
         draw_rectangle(.{Input_Controller.mouse_x, Input_Controller.mouse_y} - .{5,5}, .{10,10}, Vector4.{1,0,0,1});
     }
 

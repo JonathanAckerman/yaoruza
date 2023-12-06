@@ -14,10 +14,7 @@ Input_Controller: struct {
     mouse_x: float;
     mouse_y: float;
 
-    spell_1: bool;
-    spell_2: bool;
-    spell_3: bool;
-    spell_4: bool;
+    spells: [4] bool;
 
     mouse_button_left:  u32;
     mouse_button_right: u32;
@@ -84,13 +81,13 @@ handle_input :: () {
                 if is_player_turn() {
                     if key == {
                         case #char "Q";
-                            spell_1 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
+                            spells[0] = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "W";
-                            spell_2 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
+                            spells[1] = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "E";
-                            spell_3 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
+                            spells[2] = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "R";
-                            spell_4 = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
+                            spells[3] = event.key_pressed && Input.input_button_states[key] & .START && !event.repeat;
                         case #char "A";
                         case .MOUSE_BUTTON_LEFT;
                             mouse_button_left = event.key_pressed;
