@@ -14,6 +14,7 @@ Entity :: struct {
     representation_size: Vector2;
     hp: float;
     mana: float;
+    unit_name: string;
 }
 
 Hero :: struct {
@@ -84,6 +85,7 @@ HERO_TEMPLATE_EARTHSHAKER :: Entity.{
     },
     representation_color = .{1, 0, 0, 1},
     representation_size = .{50, 50},
+    unit_name = "Earthshaker",
 };
 HERO_TEMPLATE_JUGGERNAUT :: Entity.{
     type = .HERO,
@@ -102,6 +104,7 @@ HERO_TEMPLATE_JUGGERNAUT :: Entity.{
     },
     representation_color = .{0, 1, 0, 1},
     representation_size = .{50, 50},
+    unit_name = "Juggernaut",
 };
 CREEP_TEMPLATE_SKELETON :: Entity.{
     type = .CREEP,
@@ -117,6 +120,7 @@ CREEP_TEMPLATE_SKELETON :: Entity.{
     },
     representation_color = .{0.8, 0.8, 0.8, 1},
     representation_size = .{20, 20},
+    unit_name = "Skeleton",
 };
 CREEP_TEMPLATE_SKELETON_ARCHER :: Entity.{
     type = .CREEP,
@@ -132,4 +136,5 @@ CREEP_TEMPLATE_SKELETON_ARCHER :: Entity.{
     },
     representation_color = .{1, 1, 1, 1},
     representation_size = .{20, 20},
+    unit_name = "Skeleton Archer",
 };

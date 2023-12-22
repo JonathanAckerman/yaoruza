@@ -106,6 +106,12 @@ draw_battle :: () {
         Simp.draw_text(fonts.OpenSans, xx window.width/2, xx window.height/2, "ENEMY TURN", Vector4.{1,1,1,1});
         Simp.set_shader_for_color();
     }
+
+    Simp.set_shader_for_text();
+    Simp.draw_text(fonts.OpenSans, xx window.width/2, 130, sprint("%", player.unit_name), Vector4.{1,1,1,1});
+    Simp.draw_text(fonts.OpenSans, xx window.width/2, 70, sprint("HP: %", player.hp), Vector4.{1,1,1,1});
+    Simp.draw_text(fonts.OpenSans, xx window.width/2, 30, sprint("Mana: %", player.mana), Vector4.{1,1,1,1});
+    Simp.set_shader_for_color();
 }
 
 // Helpers -----------------------------------------------------------------------
